@@ -50,16 +50,70 @@ function signUp(req, res) {
                 });
               }
             })
-            .catch((error) => {});
+            .catch((error) => {
+              res.status(500).json({
+                message: " Something went wrong!",
+              });
+            });
         }
       }
     );
   }
 }
 
-function getLoggedUser(req, res) {}
+function login(req, res) {
+  const { email, password } = req.body;
+
+  models.User.findOne({ where: { email: req.body.email } })
+    .then((user) => {
+      if (user === null) {
+        res.status(401).json({
+          message: "User not found!",
+        });
+      } else {
+        bcrypt.compare(
+          req.body.password,
+          user.password,
+          function (err, result) {
+            if (result) {
+              const token = jwt.sign(
+                {
+                  email: user.email,
+                  id: user.id,
+                },
+                process.env.JWT_KEY,
+                function (err, token) {
+                  res.status(200).json({
+                    token,
+                  });
+                }
+              );
+            } else {
+              res.status(401).json({
+                message: "password incorrect!",
+              });
+            }
+          }
+        );
+      }
+    })
+    .catch((error) => {
+      res.status(500).json({
+        message: " Something went wrong!",
+      });
+    });
+}
+
+function getLoggedUser(req, res) {
+  models.User.findByPk(req.userData.id).then((user) => {
+    res.status(200).json({
+      user,
+    });
+  });
+}
 
 module.exports = {
   signUp: signUp,
+  login: login,
   getLoggedUser: getLoggedUser,
 };
