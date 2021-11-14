@@ -38,7 +38,7 @@ function signUp(req, res) {
                         res.status(201).json({
                           message:
                             "Account created successfully, please login!",
-                          // user: result,
+                          //user: result,
                         });
                       })
                       .catch((error) => {
@@ -105,9 +105,9 @@ function login(req, res) {
 }
 
 function getLoggedUser(req, res) {
-  models.User.findByPk(req.userData.id).then((user) => {
+  models.User.findByPk(req.userData.id).then((loggedUser) => {
     res.status(200).json({
-      user,
+      loggedUser,
     });
   });
 }
