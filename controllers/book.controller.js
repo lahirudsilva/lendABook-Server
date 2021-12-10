@@ -1,166 +1,129 @@
-const Validator = require('fastest-validator');
-const models = require('../models');
-const { req, res} = require('express');
+const models = require("../models");
+const moment = require("moment");
 
-//Add books 
-function addBooks(req, res){
-    const newBook = {
-        ISBN: req.body.ISBN,
-        title: req.body.title,
-        bookCover: req.body.bookCover,
-        summary: req.body.summary,
-        category: req.body.category,
-        author: req.body.author,
-        publisher: req.body.publisher,
-        status: req.body.status,
-        numberOfCopies: req.body.numberOfCopies,
-        rating: req.body.rating
-    }
-    //data validation
-    const schema = {
-        ISBN: {type:"number", optional: false},
-        title: {type:"string", optional: false, max: "255"},
-        summary: {type:"string", optional: false, max: "255"},
-        category: {type:"string", optional: false, max: "255"},
-        author: {type:"string", optional: false, max: "255"},
-        publisher: {type:"string", optional: true, max: "255"},
-        status: {type:"string", optional: false, max: "255"},
-        numberOfCopies: {type:"number", optional: false},
-        rating: {type:"number", optional: true},
-    }
+const { uploadBookImageMW } = require("../middleware/multer");
+const book = require("../models/book");
+const { response } = require("express");
+const { getList } = require("../util/validators");
 
-    const v = new Validator();
-    const validationResponse = v.validate(newBook, schema);
+//Add books
+exports.addBooks = async (req, res) => {
+  let newBook = {
+    ISBN: req.body.ISBN,
+    title: req.body.title,
+    bookCover: req.body.bookCover,
+    summary: req.body.summary,
+    category: req.body.category,
+    author: req.body.author,
+    publisher: req.body.publisher,
+    rating: req.body.rating,
+  };
 
-    if(validationResponse !== true){
-        return res.status(400).json({
-            message: "validation failed.",
-            errors: validationResponse
-        });
-    }
-
-    models.Book.create(newBook).then(result =>{
-        res.status(201).json({
-            message: " Book added successfully",
-            book: result
-        });
-
-    }).catch(error => {
-        res.status(500).json({
-            message: " somehting went wrong!",
-            error: error
-        });
-
+  try {
+    //find book through ISBN
+    const _book = await models.Book.findOne({
+      where: {
+        ISBN: newBook.ISBN,
+      },
     });
-}
 
+    if (_book)
+      return res
+        .status(400)
+        .json({ error: { ISBN: "Book ISBN number already exists" } });
 
+    const book = await models.Book.create(newBook);
+
+    return res.status(201).json(book);
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
+
+exports.uploadBookImage = async (req, res) => {
+  uploadBookImageMW(req, res, async (error) => {
+    if (error) {
+      if (error.code == "LIMIT_FILE_SIZE") {
+        error.message = "File Size is too large.";
+      }
+      return res.status(500).json({ error });
+    } else {
+      if (!req.file) {
+        res.status(500).json({ error: "file not found" });
+      }
+      try {
+        const book = await models.Book.findByPk(req.params.ISBN);
+
+        book.bookCover = `http://localhost:3001/books/${req.file.filename}`;
+        book.save();
+        return res
+          .status(200)
+          .json({ message: " Image uploaded successfully" });
+      } catch (error) {
+        return res.status(500).json({ error: error.message });
+      }
+    }
+  });
+};
 
 //Get A single book
-function getBook(req, res){
-    const ISBN = req.params.ISBN;
+exports.getBook = async (req, res) => {
+  try {
+    const id = req.params.ISBN;
+    let book = await models.Book.findByPk(id);
+    return res.status(200).json({ book });
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
 
-    models.Book.findByPk(ISBN).then(result => {
-        if(result){
-            res.status(200).json(result)
-        }else{
-            res.status(404).json({
-                message: "Book not found!"
-            })  
-        }
-        
-    }).catch(error => {
-        res.status(500).json({
-            message: "Something went wrong!"
-        })  
-    });
-    
+//Get all the books
+exports.getAllBooks = async (req, res) => {
+  try {
+    const books = await models.Book.findAll();
+    return res.status(200).json({ books });
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
+
+/* TOGGLE isAvailable PROPERTY */
+exports.toggleAvailability = async (req, res) => {
+  book_id = req.params.ISBN;
+
+  try {
+    let book = await models.Book.findByPk(book_id);
+
+    if (!book) return res.status(404).json({ error: "Book not found" });
+
+    book.isAvailable = !book.isAvailable;
+    book.save();
+
+    return res
+      .status(200)
+      .json({ message: "Vehicle availability successfully changed" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error });
+  }
+};
+
+
+/* GET LIST OF AVAILABLE RENTS GIVEN DROP OFF AND PICKUP DATE */
+exports.getAvailableBooks = async (req, res) => {
+
+  //Get user input
+  const userInput = {
+    reserveDate: req.params.reserveDate,
+    returnDate: req.params.returnDate,
+  };
+
+  const reserve = moment(userInput.reserveDate, "YYYY-MM-DD").add(1, "day").format();
+  const returnBack = moment(userInput.returnDate, "YYYY-MM-DD").add(1, "day").format();
+
+  let books = await getList(new Date(reserve), new Date(returnBack));
+
+  return res.status(200).json({books});
+
 }
 
-//Get all the posts
-function getAllBooks(req,res){
-    models.Book.findAll().then(result => {
-        res.status(200).json(result);
-    }).catch(error => {
-        res.status(500).json({
-            message: "something went wrong!"
-        });    
-    });
-}
-
-//update books details
-function updateBookDetails(req, res){
-    const ISBN = req.params.ISBN;
-    const updatedBook = {
-        ISBN: req.body.ISBN,
-        title: req.body.title,
-        bookCover: req.body.bookCover,
-        summary: req.body.summary,
-        category: req.body.category,
-        author: req.body.author,
-        publisher: req.body.publisher,
-        status: req.body.status,
-        numberOfCopies: req.body.numberOfCopies,
-        rating: req.body.rating
-    }
-
-    //data validation
-    const schema = {
-        title: {type:"string", optional: true, max: "255"},
-        summary: {type:"string", optional: true, max: "255"},
-        category: {type:"string", optional: true, max: "255"},
-        author: {type:"string", optional: true, max: "255"},
-        publisher: {type:"string", optional: true, max: "255"},
-        status: {type:"string", optional: true, max: "255"},
-        numberOfCopies: {type:"number", optional: true},
-        rating: {type:"number", optional: true},
-    }
-
-    const v = new Validator();
-    const validationResponse = v.validate(updatedBook, schema);
-
-    if(validationResponse !== true){
-        return res.status(400).json({
-            message: "validation failed.",
-            errors: validationResponse
-        });
-    }
-
-    models.Book.update(updatedBook, {where: {ISBN:ISBN}}).then(result => {
-        res.status(200).json({
-            message: "Book details updated successfully..",
-            book: updatedBook
-        });
-    }).catch(error => {
-        res.status(500).json({
-            message: "something went wrong!",
-            error: error
-        })
-    })
-}
-
-//delete a book
-function deleteBook(req, res){
-    const ISBN = req.params.ISBN;
-
-    models.Book.destroy({where:{ISBN:ISBN}}).then(result => {
-        res.status(200).json({
-            message: "book deleted sucessfully.."
-        })
-    }).catch(error => {
-        res.status(500).json({
-            message: "something went wrong!",
-            error: error
-        })
-
-    })
-}
-
-module.exports = {
-    addBooks: addBooks,
-    getBook: getBook,
-    getAllBooks: getAllBooks,
-    updateBookDetails: updateBookDetails,
-    deleteBook: deleteBook
-    
-}
