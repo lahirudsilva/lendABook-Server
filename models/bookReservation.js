@@ -19,8 +19,14 @@ module.exports = (sequelize, DataTypes) => {
   }
   BookReservation.init(
     {
-      reservatonId: DataTypes.INTEGER,
-      bookId: DataTypes.INTEGER,
+      reservatonId:{
+        type: DataTypes.INTEGER,
+        required: [true, "Must not be empty"],
+      },
+      bookId: {
+        type: DataTypes.INTEGER,
+        required: [true, "Must not be empty"],
+      },
     },
     {
       sequelize,
