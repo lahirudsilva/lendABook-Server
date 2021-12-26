@@ -13,30 +13,50 @@ module.exports = (sequelize, DataTypes) => {
         through: "BookReservation",
         as: "books",
         foreignKey: "bookId",
-        otherKey: 'reservaionId'
-        
+        otherKey: "reservaionId",
       });
     }
   }
   Book.init(
     {
-      ISBN: { type: DataTypes.INTEGER, primaryKey: true },
-      title: DataTypes.STRING,
+      ISBN: { 
+        type: DataTypes.INTEGER, 
+        primaryKey: true,
+       },
+      title: {
+        type: DataTypes.STRING,
+        required: [true, "Must not be empty"],
+      },
       bookCover: {
         type: DataTypes.STRING,
-        required: true,
+        required: [true, "Must not be empty"],
         defaultValue: "http://localhost:3001/books/default_book.png",
       },
-      summary: DataTypes.STRING,
-      category: DataTypes.STRING,
-      author: DataTypes.STRING,
-      publisher: DataTypes.STRING,
+      summary: {
+        type: DataTypes.STRING,
+        required: [true, "Must not be empty"],
+      },
+      category: {
+        type: DataTypes.STRING,
+        required: [true, "Must not be empty"],
+      },
+      author: {
+        type: DataTypes.STRING,
+        required: [true, "Must not be empty"],
+      },
+      publisher: {
+        type: DataTypes.STRING,
+        required: [true, "Must not be empty"],
+      },
       isAvailable: {
         type: DataTypes.BOOLEAN,
-        required: true,
+        required: [true, "Must not be empty"],
         defaultValue: true,
       },
-      rating: DataTypes.INTEGER,
+      rating: {
+        type: DataTypes.INTEGER,
+        required: [true, "Must not be empty"],
+      },
     },
     {
       sequelize,
