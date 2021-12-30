@@ -12,9 +12,15 @@ module.exports = (sequelize, DataTypes) => {
       Reservation.belongsTo(models.User);
       Reservation.belongsToMany(models.Book, {
         through: "BookReservation",
-        as: "reservations",
+        as: "books",
         foreignKey: "reservatonId",
         otherKey: "bookId",
+      });
+      Reservation.belongsToMany(models.Movie, {
+        through: "MovieReservation",
+        as: "movies",
+        foreignKey: "reservatonId",
+        otherKey: "movieId",
       });
     }
   }

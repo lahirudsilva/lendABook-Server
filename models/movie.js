@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Movie.belongsToMany(models.Reservation, {
         through: "MovieReservation",
-        as: "movies",
+        as: "reservations",
         foreignKey: "movieId",
         otherKey: "reservaionId",
       });
@@ -63,6 +63,10 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: false,
       },
       rating: {
+        type: DataTypes.INTEGER,
+        required: [true, "Must not be empty"],
+      },
+      noOfCopies: {
         type: DataTypes.INTEGER,
         required: [true, "Must not be empty"],
       },

@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Book.belongsToMany(models.Reservation, {
         through: "BookReservation",
-        as: "books",
+        as: "reservations",
         foreignKey: "bookId",
         otherKey: "reservaionId",
       });
@@ -19,10 +19,10 @@ module.exports = (sequelize, DataTypes) => {
   }
   Book.init(
     {
-      ISBN: { 
-        type: DataTypes.INTEGER, 
+      ISBN: {
+        type: DataTypes.INTEGER,
         primaryKey: true,
-       },
+      },
       title: {
         type: DataTypes.STRING,
         required: [true, "Must not be empty"],
@@ -54,6 +54,10 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: true,
       },
       rating: {
+        type: DataTypes.INTEGER,
+        required: [true, "Must not be empty"],
+      },
+      noOfCopies: {
         type: DataTypes.INTEGER,
         required: [true, "Must not be empty"],
       },
