@@ -12,7 +12,6 @@ const multerStorage = (type) =>
     },
   });
 
-
 //filter  out filetypes other than image
 const multerFilter = (req, file, cb) => {
   if (file.mimetype.startsWith("image")) {
@@ -37,3 +36,5 @@ const upload = (type) =>
   });
 
 exports.uploadBookImageMW = upload("books").single("image");
+exports.uploadMovieImageMW = upload("movies").single("image");
+exports.uploadUserImageMW = upload("user").single("image");

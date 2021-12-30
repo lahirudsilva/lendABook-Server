@@ -2,6 +2,9 @@ const models = require("../models");
 const bcrypt = require("bcrypt");
 const { validateRegister } = require("../util/validators");
 const jwt = require("jsonwebtoken");
+const req = require("express/lib/request");
+
+const { uploadUserImageMW } = require("../middleware/multer");
 
 /* REGISTER USER */
 exports.signUp = async (req, res) => {
@@ -15,6 +18,7 @@ exports.signUp = async (req, res) => {
     dateOfBirth: req.body.dateOfBirth,
     contactNo: req.body.contactNo,
     role: req.body.role,
+    subscriptionID: req.body.subscriptionType,
   };
 
   try {
@@ -89,6 +93,17 @@ exports.getLoggedInUser = async (req, res) => {
   }
 };
 
+exports.getUserSubscription = async (req, res) => {
+  try {
+    const subscription = await models.Subscription.findByPk(
+      req.userData.subscriptionID
+    );
+    return res.status(200).json(subscription);
+  } catch (error) {
+    return res.status(500).json({ error: error });
+  }
+};
+
 /* GET ALL USERS */
 exports.getUsers = async (req, res) => {
   try {
@@ -152,4 +167,41 @@ exports.changeIsBlacklisted = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ error });
   }
+};
+
+/* UPLOAD USER IMAGE */
+exports.uploadUserImage = async (req, res) => {
+  // console.log("herereeeeeeeeeeeeee");
+  uploadUserImageMW(req, res, async (error) => {
+    if (error) {
+      //instanceof multer.MulterError
+
+      if (error.code == "LIMIT_FILE_SIZE") {
+        error.message = "File Size is too large.";
+      }
+      return res.status(500).json({ error: error.message });
+    } else {
+      if (!req.file) {
+        return res.status(500).json({ error: { message: "File not found" } });
+      }
+
+      try {
+        // console.log(req.userData.dataValues.id);
+        //Find user from database
+        const user = await models.User.findByPk(req.userData.dataValues.id);
+
+        console.log(user);
+
+        //Create image URL from file name and update object
+        user.userImageURL = `http://localhost:3001/user/${req.file.filename}`;
+
+        //Save edited user object
+        user.save();
+
+        return res.status(200).json({ message: "Image uploaded successfully" });
+      } catch (error) {
+        return res.status(500).json({ error: error.message });
+      }
+    }
+  });
 };
