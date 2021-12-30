@@ -3,6 +3,8 @@ const moment = require("moment");
 
 const { uploadMovieImageMW } = require("../middleware/multer");
 
+const { getMovieList } = require("../util/validators");
+
 //Add movies
 exports.addMovies = async (req, res) => {
   let newMovie = {
@@ -14,6 +16,7 @@ exports.addMovies = async (req, res) => {
     director: req.body.director,
     production: req.body.production,
     rating: req.body.ratings,
+    noOfCopies: req.body.copies,
   };
 
   try {
@@ -48,7 +51,7 @@ exports.getAllMovies = async (req, res) => {
 };
 
 exports.uploadMovieImage = async (req, res) => {
-  console.log("herereeeeeeeeeeeeee");
+  // console.log("herereeeeeeeeeeeeee");
   uploadMovieImageMW(req, res, async (error) => {
     if (error) {
       if (error.code == "LIMIT_FILE_SIZE") {
@@ -105,4 +108,24 @@ exports.toggleAvailability = async (req, res) => {
     console.log(error);
     return res.status(500).json({ error });
   }
+};
+
+/* GET LIST OF AVAILABLE RENTS GIVEN DROP OFF AND PICKUP DATE */
+exports.getAvailableMovies = async (req, res) => {
+  //Get user input
+  const userInput = {
+    reserveDate: req.params.reserveDate,
+    returnDate: req.params.returnDate,
+  };
+
+  const reserve = moment(userInput.reserveDate, "YYYY-MM-DD")
+    .add(1, "day")
+    .format();
+  const returnBack = moment(userInput.returnDate, "YYYY-MM-DD")
+    .add(1, "day")
+    .format();
+
+  let movies = await getMovieList(new Date(reserve), new Date(returnBack));
+
+  return res.status(200).json({ movies });
 };
