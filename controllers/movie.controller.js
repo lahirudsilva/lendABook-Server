@@ -1,5 +1,7 @@
 const models = require("../models");
 const moment = require("moment");
+const cheerio = require("cheerio");
+const axios = require("axios");
 
 const { uploadMovieImageMW } = require("../middleware/multer");
 
@@ -128,4 +130,43 @@ exports.getAvailableMovies = async (req, res) => {
   let movies = await getMovieList(new Date(reserve), new Date(returnBack));
 
   return res.status(200).json({ movies });
+};
+
+/* SCRAPE PRICES FROM WEBSITE */
+exports.getMoviePrices = async (req, res) => {
+  const url = process.env.SCRAPE_URL_VIDEO;
+  console.log(url);
+  try {
+    //Get html data from site and load to cheerio
+    let result = await axios.get(url);
+    // console.log(result);
+    const html = result.data;
+    const $ = cheerio.load(html);
+
+    // const priceTable = $(".zg-ordered-list");
+    const videoPrices = [];
+
+    $(".ImZGtf.mpg5gc").each((_idx, el) => {
+      const videoPrice = $(el);
+      const price = videoPrice.find(".VfPpfd.ZdBevf.i5DZme").text();
+      const link = videoPrice.find("a").attr("href");
+      const title = videoPrice.find(".WsMG1c.nnK0zc").text();
+      const trailer = videoPrice.find(".KoLSrc").text();
+      const img = videoPrice.find("img").attr("data-src");
+      // console.log(img);
+      videoPrices.push({
+        price,
+        link: `https://play.google.com${link}`,
+        title,
+        img,
+      });
+      // console.log(videoPrices)
+      // console.log(videoPrice);
+    });
+    // console.log(videoPrices);
+    return res.status(200).json({ videoPrices });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: error.message });
+  }
 };
