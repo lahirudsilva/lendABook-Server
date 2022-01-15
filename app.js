@@ -21,9 +21,15 @@ const moviesRoute = require("./routes/movies");
 // Reservation Routes
 const reserveRoute = require("./routes/reservation");
 
+const bookScrapRoute = require("./routes/BookPrices");
+const movieScrapeRoute = require("./routes/VideoPrices");
+
+
 app.use("/books", booksRoute);
 app.use("/movies", moviesRoute);
 app.use("/user", userRoute);
-app.use("/reserve", reserveRoute)
+app.use("/reserve", reserveRoute);
+app.use("/getBookPrices", bookScrapRoute);
+app.use("/getMoviePrices", movieScrapeRoute);
 
 module.exports = app;
