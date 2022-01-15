@@ -1,5 +1,7 @@
 const models = require("../models");
 const moment = require("moment");
+const cheerio = require("cheerio");
+const axios = require("axios");
 
 const { uploadBookImageMW } = require("../middleware/multer");
 // const book = require("../models/book");
@@ -150,3 +152,40 @@ exports.getAvailableBooks = async (req, res) => {
 //     return response.status(500).json({ error });
 //   }
 // };
+
+/* SCRAPE PRICES FROM WEBSITE */
+exports.getBookPrices = async (req, res) => {
+  const url = process.env.SCRAPE_URL_BOOK;
+  console.log(url);
+  try {
+    //Get html data from site and load to cheerio
+    let result = await axios.get(url);
+    // console.log(result);
+    const html = result.data;
+    const $ = cheerio.load(html);
+
+    // const priceTable = $(".zg-ordered-list");
+    const bookPrices = [];
+
+    $(".zg-item-immersion").each((_idx, el) => {
+      const bookPrice = $(el);
+      const price = bookPrice.find(".p13n-sc-price").text();
+      const link = bookPrice.find(".a-link-normal").attr("href");
+      const title = bookPrice.find("img").attr("alt");
+      const img = bookPrice.find("img").attr("src");
+
+      bookPrices.push({
+        price,
+        link :`https://amazon.com${link}`,
+        title,
+        img,
+      });
+      // console.log(bookPrices)
+    }); 
+
+    return res.status(200).json({ bookPrices });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: error.message });
+  }
+};
