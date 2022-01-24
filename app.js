@@ -22,8 +22,14 @@ const moviesRoute = require("./routes/movies");
 const reserveRoute = require("./routes/reservation");
 
 const bookScrapRoute = require("./routes/BookPrices");
+
 const movieScrapeRoute = require("./routes/VideoPrices");
 
+const readCsv = require("./routes/csv_Reader");
+
+const secondaryDB = require("./routes/externalDB");
+
+const bookFavoriteRoute = require("./routes/bookFavorites");
 
 app.use("/books", booksRoute);
 app.use("/movies", moviesRoute);
@@ -31,5 +37,8 @@ app.use("/user", userRoute);
 app.use("/reserve", reserveRoute);
 app.use("/getBookPrices", bookScrapRoute);
 app.use("/getMoviePrices", movieScrapeRoute);
+app.use("/csv", readCsv);
+app.use("/bookFavorites", bookFavoriteRoute);
+app.use("/sencondDB", secondaryDB);
 
 module.exports = app;

@@ -2,6 +2,7 @@ const req = require("express/lib/request");
 const res = require("express/lib/response");
 const models = require("../models");
 
+/*Book reservation*/
 exports.reserveBook = async (req, res) => {
   // Create and save the order
 
@@ -11,7 +12,21 @@ exports.reserveBook = async (req, res) => {
     status: "pending",
     charge: req.body.charge,
     UserId: req.body.userId,
+    sub: req.body.subBooks,
+    cart: req.body.cartLength,
   };
+
+  //check if books exceed subscription limit
+  if (newReservation.sub < newReservation.cart) {
+    res.status(401).json({
+      message:
+        " Sorry! You can not reserve more than " +
+        newReservation.sub +
+        " Books at a time",
+    });
+    return;
+  }
+
   console.log(newReservation);
   console.log(req.body.books);
   const savedReservation = await models.Reservation.create(newReservation);
@@ -42,6 +57,7 @@ exports.reserveBook = async (req, res) => {
   });
 };
 
+/*Movie reservation*/
 exports.reserveMovie = async (req, res) => {
   // Create and save the order
 
@@ -51,9 +67,24 @@ exports.reserveMovie = async (req, res) => {
     status: "pending",
     charge: req.body.charge,
     UserId: req.body.userId,
+    sub: req.body.subVideos,
+    cart: req.body.cartLength,
   };
   console.log(newReservation);
-  console.log(req.body.movies);
+
+  const subv = parseInt(req.body.subVideos);
+  const length = parseInt(req.body.cartLength);
+  //check if books exceed subscription limit
+  if (subv < length) {
+    res.status(401).json({
+      message:
+        " Sorry! You can not reserve more than " +
+        newReservation.sub +
+        " Movies at a time",
+    });
+    return;
+  }
+
   const savedReservation = await models.Reservation.create(newReservation);
 
   req.body.movies.cartItems.forEach(async (item) => {

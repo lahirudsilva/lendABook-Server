@@ -2,9 +2,12 @@
   "name": "lendabook-server",
   "version": "1.0.0",
   "description": "A REST APT with nodejs and mysql",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "cross-env NODE_ENV=test jest --testTimeout=10000",
+    "pretest": "cross-env NODE_ENV=test npm run db:reset",
+    "db:create:test": "cross-env NODE_ENV=test npx sequelize-cli db:create",
+    "db:reset": "npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all",
     "start": "nodemon server.js"
   },
   "author": "TypicalCoderr",
@@ -14,15 +17,30 @@
     "bcrypt": "^5.0.1",
     "cheerio": "^1.0.0-rc.10",
     "cors": "^2.8.5",
+    "csv-parser": "^3.0.0",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
+    "fast-csv": "^4.3.6",
     "fastest-validator": "^1.12.0",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.1",
+    "mongoose": "^6.1.7",
     "multer": "^1.4.3",
     "mysql2": "^2.3.2",
     "nodemon": "^2.0.14",
     "sequelize": "^6.6.5",
     "sequelize-cli": "^6.2.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "jest": "^27.4.7",
+    "nodemon": "^2.0.14",
+    "supertest": "^6.2.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ]
   }
 }

@@ -9,6 +9,7 @@ const {
   getMovie,
   toggleAvailability,
   getAvailableMovies,
+  updateMovieCopies
 } = require("../controllers/movie.controller");
 
 const router = express.Router();
@@ -26,7 +27,7 @@ router.get(
   checkAuthMiddleware("admin"),
   toggleAvailability
 );
-
 router.get("/available-movies/:reserveDate/:returnDate", getAvailableMovies);
+router.post("/update-copies", checkAuthMiddleware("admin"), updateMovieCopies);
 
 module.exports = router;

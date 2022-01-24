@@ -9,6 +9,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Book.hasMany(models.BookFavorites);
       Book.belongsToMany(models.Reservation, {
         through: "BookReservation",
         as: "reservations",
@@ -33,7 +34,7 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: "http://localhost:3001/books/default_book.png",
       },
       summary: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(1000),
         required: [true, "Must not be empty"],
       },
       category: {

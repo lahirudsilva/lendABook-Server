@@ -2,13 +2,14 @@ const models = require("../models");
 const bcrypt = require("bcrypt");
 const { validateRegister } = require("../util/validators");
 const jwt = require("jsonwebtoken");
-const req = require("express/lib/request");
+// const req = require("express/lib/request");
 
 const { uploadUserImageMW } = require("../middleware/multer");
 
 /* REGISTER USER */
 exports.signUp = async (req, res) => {
   //Create new user object from user request
+  console.log(req);
   const new_user = {
     firstName: req.body.firstName,
     lastName: req.body.lastName,
@@ -18,7 +19,7 @@ exports.signUp = async (req, res) => {
     dateOfBirth: req.body.dateOfBirth,
     contactNo: req.body.contactNo,
     role: req.body.role,
-    subscriptionID: req.body.subscriptionType,
+    // subscriptionID: req.body.subscriptionType,
   };
 
   try {
@@ -107,7 +108,11 @@ exports.getUserSubscription = async (req, res) => {
 /* GET ALL USERS */
 exports.getUsers = async (req, res) => {
   try {
-    const users = await models.User.findAll();
+    const users = await models.User.findAll({
+      where: {
+        role: "customer",
+      },
+    });
     return res.status(200).json({ users });
   } catch (error) {
     return res.status(500).json({ error });
@@ -171,7 +176,6 @@ exports.changeIsBlacklisted = async (req, res) => {
 
 /* UPLOAD USER IMAGE */
 exports.uploadUserImage = async (req, res) => {
-  // console.log("herereeeeeeeeeeeeee");
   uploadUserImageMW(req, res, async (error) => {
     if (error) {
       //instanceof multer.MulterError

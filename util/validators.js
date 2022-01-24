@@ -24,6 +24,7 @@ exports.validateRegister = async (data) => {
   }
 };
 
+//get available books list
 exports.getList = async (reserve, returnBack) => {
   const books = await models.Book.findAll({
     where: {
@@ -39,6 +40,8 @@ exports.getList = async (reserve, returnBack) => {
   return availableBooks;
 };
 
+
+//get available movie list
 exports.getMovieList = async (reserve, returnBack) => {
   let copies;
   const movies = await models.Movie.findAll({

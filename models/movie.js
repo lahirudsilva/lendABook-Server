@@ -33,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: "http://localhost:3001/books/default_movie.png",
       },
       summary: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(1000),
         required: [true, "Must not be empty"],
       },
       category: {

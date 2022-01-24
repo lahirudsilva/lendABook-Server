@@ -68,6 +68,7 @@ module.exports = (sequelize, DataTypes) => {
   User.associate = function (models) {
     // define association here
     User.hasMany(models.Reservation);
+    User.hasMany(models.BookFavorites);
     User.belongsTo(models.Subscription, {
       as: "subscrption",
       foreignKey: "subscriptionID",

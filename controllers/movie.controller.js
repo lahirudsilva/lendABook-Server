@@ -91,6 +91,21 @@ exports.getMovie = async (req, res) => {
   }
 };
 
+/* update movie copies */
+exports.updateMovieCopies = async (req, res) => {
+  console.log(req.body.copies);
+  const copies = parseInt(req.body.copies);
+  try {
+    const movie = await models.Movie.findByPk(req.body.movieId);
+    movie.noOfCopies = movie.noOfCopies + copies;
+
+    movie.save();
+    return res.status(200).json("updated copies");
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 /* TOGGLE isAvailable PROPERTY */
 exports.toggleAvailability = async (req, res) => {
   movie_id = req.params.movieId;

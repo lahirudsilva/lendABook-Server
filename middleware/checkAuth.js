@@ -42,6 +42,7 @@ module.exports = (admin) => async (req, res, next) => {
     }
   }
 
+
   req.userData = user;
 
   return next();
